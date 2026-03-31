@@ -1,5 +1,16 @@
 # Robust NLP Classifier App
 
+GROUP Members:
+
+- FA23-BBD-085    MUHAMMAD ALI ABID
+- FA23-0BBD-058   IBRAHIM ZAHEER
+- SP23-BBD-049    Muhammad USMAN FAKHAR
+
+## Repo Links
+- https://github.com/Midnight-W4lker/Robust-NLP-Classifier-App/edit/main
+- https://github.com/MAULANA-Ali-Don/Robust-NLP-Classifier-App
+- https://github.com/Muhammad-Usman-09/Robust-NLP-Classifier-App/tree/main
+
 A robust, modular, and extensible Natural Language Processing (NLP) classification pipeline for text datasets. This project supports preprocessing, model training, evaluation, and reporting, with a user-friendly Streamlit web interface.
 
 ## Features
@@ -57,6 +68,7 @@ A robust, modular, and extensible Natural Language Processing (NLP) classificati
 
 ## Project Demo Video
 
+<<<<<<< HEAD
 
 
 ## Project Demo Video
@@ -72,6 +84,9 @@ You can preview the demo video directly below (works in most Markdown viewers th
 </p>
 
 If the video does not play in your viewer, [download the demo video](documentation/demo.mkv) and open it locally.
+=======
+video in documentation/project-demo.mkv
+>>>>>>> 6395da7194e802ec964f6488ac69b3fa6e6d77bc
 
 ## Extending the Project
 - Add new models in `train_models.py` and update `predict.py` for inference.
