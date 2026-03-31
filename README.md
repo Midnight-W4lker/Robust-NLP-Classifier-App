@@ -57,20 +57,7 @@ A robust, modular, and extensible Natural Language Processing (NLP) classificati
 
 ## Project Demo Video
 
-
-Watch the demo video to see the app in action:
-
-<p align="center">
-	<a href="https://www.youtube.com/watch?v=YOUR_DEMO_VIDEO_LINK" target="_blank">
-		<img src="https://img.youtube.com/vi/YOUR_DEMO_VIDEO_LINK/0.jpg" alt="Project Demo Video" width="480"/>
-	</a>
-</p>
-
-Or watch directly below:
-
-<div align="center">
-	<iframe width="560" height="315" src="https://www.youtube.com/embed/YOUR_DEMO_VIDEO_LINK" title="Project Demo Video" frameborder="0" allowfullscreen></iframe>
-</div>
+video in documentation/project-demo.mkv
 
 ## Extending the Project
 - Add new models in `train_models.py` and update `predict.py` for inference.
