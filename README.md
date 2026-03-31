@@ -6,6 +6,10 @@ GROUP Members:
 - FA23-0BBD-058   IBRAHIM ZAHEER
 - SP23-BBD-049    Muhammad USMAN FAKHAR
 
+## Repo Links
+- https://github.com/Midnight-W4lker/Robust-NLP-Classifier-App/edit/main/README.md
+- https://github.com/MAULANA-Ali-Don/Robust-NLP-Classifier-App
+- https://github.com/Muhammad-Usman-09/Robust-NLP-Classifier-App/tree/main
 
 A robust, modular, and extensible Natural Language Processing (NLP) classification pipeline for text datasets. This project supports preprocessing, model training, evaluation, and reporting, with a user-friendly Streamlit web interface.
 
