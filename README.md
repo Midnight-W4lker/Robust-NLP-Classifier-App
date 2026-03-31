@@ -7,7 +7,7 @@ GROUP Members:
 - SP23-BBD-049    Muhammad USMAN FAKHAR
 
 ## Repo Links
-- https://github.com/Midnight-W4lker/Robust-NLP-Classifier-App/edit/main/README.md
+- https://github.com/Midnight-W4lker/Robust-NLP-Classifier-App/edit/main
 - https://github.com/MAULANA-Ali-Don/Robust-NLP-Classifier-App
 - https://github.com/Muhammad-Usman-09/Robust-NLP-Classifier-App/tree/main
 
