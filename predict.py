@@ -109,6 +109,16 @@ def evaluate_file(df: pd.DataFrame, model_name: str) -> dict:
     Returns full results including correct/incorrect breakdown.
     """
     texts  = df["text"].astype(str).tolist()
+    # Map string labels to integers if needed
+    if df["label"].dtype == object:
+        label_map = {"negative": 0, "neutral": 1, "positive": 1}
+        # If there are only 'negative' and 'positive', map as binary
+        unique_labels = set(df["label"].dropna().unique())
+        if unique_labels <= {"negative", "positive"}:
+            label_map = {"negative": 0, "positive": 1}
+        elif unique_labels <= {"negative", "neutral", "positive"}:
+            label_map = {"negative": 0, "neutral": 1, "positive": 2}
+        df["label"] = df["label"].map(label_map)
     labels = df["label"].astype(int).tolist()
 
     result  = predict_texts(texts, model_name)
