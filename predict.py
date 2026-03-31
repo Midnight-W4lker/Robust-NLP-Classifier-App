@@ -108,18 +108,33 @@ def evaluate_file(df: pd.DataFrame, model_name: str) -> dict:
     Evaluate predictions on a DataFrame with 'text' and 'label' columns.
     Returns full results including correct/incorrect breakdown.
     """
-    texts  = df["text"].astype(str).tolist()
+    # Auto-detect text and label columns
+    def detect_column(possibilities, columns):
+        for p in possibilities:
+            for c in columns:
+                if c.lower() == p:
+                    return c
+        return None
+
+    text_candidates = ["text", "sentence", "content", "review", "tweet", "message"]
+    label_candidates = ["label", "target", "class", "sentiment", "category"]
+    columns = list(df.columns)
+    text_col = detect_column(text_candidates, columns)
+    label_col = detect_column(label_candidates, columns)
+    if not text_col or not label_col:
+        raise ValueError(f"Could not auto-detect text/label columns. Found columns: {columns}")
+
+    texts  = df[text_col].astype(str).tolist()
     # Map string labels to integers if needed
-    if df["label"].dtype == object:
+    if df[label_col].dtype == object:
         label_map = {"negative": 0, "neutral": 1, "positive": 1}
-        # If there are only 'negative' and 'positive', map as binary
-        unique_labels = set(df["label"].dropna().unique())
+        unique_labels = set(df[label_col].dropna().unique())
         if unique_labels <= {"negative", "positive"}:
             label_map = {"negative": 0, "positive": 1}
         elif unique_labels <= {"negative", "neutral", "positive"}:
             label_map = {"negative": 0, "neutral": 1, "positive": 2}
-        df["label"] = df["label"].map(label_map)
-    labels = df["label"].astype(int).tolist()
+        df[label_col] = df[label_col].map(label_map)
+    labels = df[label_col].astype(int).tolist()
 
     result  = predict_texts(texts, model_name)
     preds   = result["predictions"]

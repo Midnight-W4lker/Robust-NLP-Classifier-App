@@ -259,7 +259,7 @@ if page == "🏠 Home":
 # ─────────────────────────────────────────────────────────────────────────────
 elif page == "📁 Test File Upload":
     st.markdown("## 📁 Upload Test Dataset")
-    st.info("Upload a CSV with **`text`** and **`label`** columns. The classifier will predict each row and show correct vs incorrect results.")
+    st.info("Upload a CSV with text and label columns (auto-detected). The classifier will predict each row and show correct vs incorrect results.")
 
     uploaded = st.file_uploader("Choose CSV file", type=["csv"])
     models_sel = st.multiselect(
@@ -274,11 +274,23 @@ elif page == "📁 Test File Upload":
         st.markdown(f"**Preview** ({len(df_raw):,} rows)")
         st.dataframe(df_raw.head(5), use_container_width=True)
 
-        if "text" not in df_raw.columns or "label" not in df_raw.columns:
-            st.error("❌ CSV must have 'text' and 'label' columns.")
+        # Auto-detect text and label columns
+        def detect_column(possibilities, columns):
+            for p in possibilities:
+                for c in columns:
+                    if c.lower() == p:
+                        return c
+            return None
+        text_candidates = ["text", "sentence", "content", "review", "tweet", "message"]
+        label_candidates = ["label", "target", "class", "sentiment", "category"]
+        columns = list(df_raw.columns)
+        text_col = detect_column(text_candidates, columns)
+        label_col = detect_column(label_candidates, columns)
+        if not text_col or not label_col:
+            st.error(f"❌ Could not auto-detect text/label columns. Found columns: {columns}")
             st.stop()
 
-        df_raw = df_raw.dropna(subset=["text", "label"])
+        df_raw = df_raw.dropna(subset=[text_col, label_col])
 
         if st.button("▶️ Run Classification", type="primary"):
             if not check_models_ready():
