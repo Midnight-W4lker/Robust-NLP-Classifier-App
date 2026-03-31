@@ -66,27 +66,20 @@ A robust, modular, and extensible Natural Language Processing (NLP) classificati
 - The pipeline auto-detects these columns.
 
 
-## Project Demo Video
-
-<<<<<<< HEAD
-
 
 ## Project Demo Video
 
 You can preview the demo video directly below (works in most Markdown viewers that support HTML5 video tags):
 
 <p align="center">
-	<video width="480" controls>
-		<source src="documentation/demo.mkv" type="video/x-matroska">
-		Your browser does not support the video tag. <br>
-		<a href="documentation/demo.mkv">Download demo.mkv</a>
-	</video>
+  <video width="480" controls>
+    <source src="documentation/demo.mkv" type="video/x-matroska">
+    Your browser does not support the video tag.<br>
+    <a href="documentation/demo.mkv">Download demo.mkv</a>
+  </video>
 </p>
 
 If the video does not play in your viewer, [download the demo video](documentation/demo.mkv) and open it locally.
-=======
-video in documentation/project-demo.mkv
->>>>>>> 6395da7194e802ec964f6488ac69b3fa6e6d77bc
 
 ## Extending the Project
 - Add new models in `train_models.py` and update `predict.py` for inference.
