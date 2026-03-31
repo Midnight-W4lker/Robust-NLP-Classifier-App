@@ -1,5 +1,12 @@
 # Robust NLP Classifier App
 
+GROUP Members:
+
+FA23-BBD-085    MUHAMMAD ALI ABID
+FA23-0BBD-058   IBRAHIM ZAHEER
+SP23-BBD-049    Muhammad USMAN FAKHAR
+
+
 A robust, modular, and extensible Natural Language Processing (NLP) classification pipeline for text datasets. This project supports preprocessing, model training, evaluation, and reporting, with a user-friendly Streamlit web interface.
 
 ## Features
