@@ -49,12 +49,17 @@ class ModelLoader:
 
     @classmethod
     def _models_exist(cls) -> bool:
-        needed = [
-            "tfidf_vectorizer.pkl", "tfidf_clf.pkl",
-            "word2vec.model", "word2vec_clf.pkl",
-            "glove_style.model", "glove_clf.pkl",
-        ]
-        return all(os.path.exists(os.path.join(MODELS_DIR, f)) for f in needed)
+        # TF-IDF is always required
+        tfidf_needed = ["tfidf_vectorizer.pkl", "tfidf_clf.pkl"]
+        tfidf_exist = all(os.path.exists(os.path.join(MODELS_DIR, f)) for f in tfidf_needed)
+        
+        # Word2Vec/GloVe only checked if gensim is available
+        if GENSIM_AVAILABLE:
+            w2v_needed = ["word2vec.model", "word2vec_clf.pkl", "glove_style.model", "glove_clf.pkl"]
+            return tfidf_exist and all(os.path.exists(os.path.join(MODELS_DIR, f)) for f in w2v_needed)
+        else:
+            # Only TF-IDF required if gensim unavailable
+            return tfidf_exist
 
     @classmethod
     def load_all(cls):
@@ -63,16 +68,35 @@ class ModelLoader:
                 "Trained models not found. Please run train_models.py first."
             )
         if cls._tfidf_vec is None:
+            # Always load TF-IDF
             cls._tfidf_vec = joblib.load(os.path.join(MODELS_DIR, "tfidf_vectorizer.pkl"))
             cls._tfidf_clf = joblib.load(os.path.join(MODELS_DIR, "tfidf_clf.pkl"))
-            cls._w2v_model = Word2Vec.load(os.path.join(MODELS_DIR, "word2vec.model"))
-            cls._w2v_clf   = joblib.load(os.path.join(MODELS_DIR, "word2vec_clf.pkl"))
-            cls._glv_model = Word2Vec.load(os.path.join(MODELS_DIR, "glove_style.model"))
-            cls._glv_clf   = joblib.load(os.path.join(MODELS_DIR, "glove_clf.pkl"))
+            
+            # Only load Word2Vec/GloVe if gensim is available
+            if GENSIM_AVAILABLE:
+                try:
+                    cls._w2v_model = Word2Vec.load(os.path.join(MODELS_DIR, "word2vec.model"))
+                    cls._w2v_clf   = joblib.load(os.path.join(MODELS_DIR, "word2vec_clf.pkl"))
+                    cls._glv_model = Word2Vec.load(os.path.join(MODELS_DIR, "glove_style.model"))
+                    cls._glv_clf   = joblib.load(os.path.join(MODELS_DIR, "glove_clf.pkl"))
+                except Exception as e:
+                    print(f"⚠️ Warning: Could not load Word2Vec/GloVe models: {e}")
 
     @classmethod
     def models_ready(cls) -> bool:
         return cls._models_exist()
+    
+    @classmethod
+    def is_model_available(cls, model_name: str) -> bool:
+        """Check if a specific model is available."""
+        if model_name == "tfidf":
+            return os.path.exists(os.path.join(MODELS_DIR, "tfidf_vectorizer.pkl"))
+        elif model_name in ["word2vec", "glove"]:
+            if not GENSIM_AVAILABLE:
+                return False
+            model_file = "word2vec.model" if model_name == "word2vec" else "glove_style.model"
+            return os.path.exists(os.path.join(MODELS_DIR, model_file))
+        return False
 
 
 def predict_texts(texts: list, model_name: str) -> dict:
@@ -81,6 +105,10 @@ def predict_texts(texts: list, model_name: str) -> dict:
     model_name: one of 'tfidf' | 'word2vec' | 'glove'
     Returns dict with keys: labels, probabilities, correct, incorrect (if ground truth provided)
     """
+    # Check if model is available
+    if model_name in ["word2vec", "glove"] and not GENSIM_AVAILABLE:
+        raise ValueError(f"{model_name} requires gensim, which is not available. Please use 'tfidf' model.")
+    
     ModelLoader.load_all()
     processed = preprocess_batch(texts)
 
@@ -89,12 +117,16 @@ def predict_texts(texts: list, model_name: str) -> dict:
         clf  = ModelLoader._tfidf_clf
 
     elif model_name == "word2vec":
+        if not GENSIM_AVAILABLE or ModelLoader._w2v_model is None:
+            raise ValueError("Word2Vec model not available. Please use 'tfidf' model.")
         tokens = [t.split() for t in processed]
         size   = ModelLoader._w2v_model.vector_size
         X      = _sentences_to_matrix(tokens, ModelLoader._w2v_model, size)
         clf    = ModelLoader._w2v_clf
 
     elif model_name == "glove":
+        if not GENSIM_AVAILABLE or ModelLoader._glv_model is None:
+            raise ValueError("GloVe model not available. Please use 'tfidf' model.")
         tokens = [t.split() for t in processed]
         size   = ModelLoader._glv_model.vector_size
         X      = _sentences_to_matrix(tokens, ModelLoader._glv_model, size)

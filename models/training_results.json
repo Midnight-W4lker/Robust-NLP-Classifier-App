@@ -30,7 +30,7 @@
         "support": 17250.0
       }
     },
-    "train_time": 0.69
+    "train_time": 0.71
   },
   "word2vec": {
     "accuracy": 1.0,
@@ -63,7 +63,7 @@
         "support": 17250.0
       }
     },
-    "train_time": 43.79,
+    "train_time": 31.54,
     "vector_size": 100
   },
   "glove_style": {
@@ -97,7 +97,7 @@
         "support": 17250.0
       }
     },
-    "train_time": 8.34,
+    "train_time": 22.87,
     "vector_size": 150
   }
 }
