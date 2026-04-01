@@ -39,21 +39,59 @@ st.markdown("""
         font-size: 2.4rem; font-weight: 800;
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
         margin-bottom: 0;
     }
-    .sub-header { color: #6c757d; font-size: 1rem; margin-top: 0; }
+    .sub-header { 
+        color: #6c757d; 
+        font-size: 1rem; 
+        margin-top: 0; 
+    }
     .metric-box {
-        background: #f8f9fa; border-radius: 12px; padding: 16px 20px;
-        border-left: 5px solid #667eea; margin: 8px 0;
+        background: #f8f9fa; 
+        border-radius: 12px; 
+        padding: 16px 20px;
+        border-left: 5px solid #667eea; 
+        margin: 8px 0;
+        color: #000;
     }
-    .correct-badge   { background:#d4edda; color:#155724; border-radius:6px; padding:2px 8px; font-weight:600; }
-    .incorrect-badge { background:#f8d7da; color:#721c24; border-radius:6px; padding:2px 8px; font-weight:600; }
+    .correct-badge { 
+        background:#d4edda; 
+        color:#155724; 
+        border-radius:6px; 
+        padding:2px 8px; 
+        font-weight:600; 
+    }
+    .incorrect-badge { 
+        background:#f8d7da; 
+        color:#721c24; 
+        border-radius:6px; 
+        padding:2px 8px; 
+        font-weight:600; 
+    }
     .model-card {
-        background: white; border-radius: 12px; padding: 20px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin: 8px 0;
+        background: rgba(255, 255, 255, 0.05); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px; 
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
+        margin: 8px 0;
+        color: inherit;
     }
-    .stDataFrame { border-radius: 10px; }
-    div[data-testid="stTabs"] button { font-weight: 600; }
+    .model-card h3, .model-card h4 {
+        color: inherit;
+        margin-top: 0;
+    }
+    .model-card p, .model-card strong, .model-card em {
+        color: inherit;
+        opacity: 0.9;
+    }
+    .stDataFrame { 
+        border-radius: 10px; 
+    }
+    div[data-testid="stTabs"] button { 
+        font-weight: 600; 
+    }
 </style>
 """, unsafe_allow_html=True)
 
