@@ -21,6 +21,9 @@ import matplotlib.patches as mpatches
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
+# ── Import column detection utility ──────────────────────────────────────────
+from column_detector import detect_columns, validate_dataset, get_column_info
+
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="NLP Text Classifier",
@@ -259,7 +262,7 @@ if page == "🏠 Home":
 # ─────────────────────────────────────────────────────────────────────────────
 elif page == "📁 Test File Upload":
     st.markdown("## 📁 Upload Test Dataset")
-    st.info("Upload a CSV with text and label columns (auto-detected). The classifier will predict each row and show correct vs incorrect results.")
+    st.info("Upload a CSV file. The app will auto-detect text and label columns (if available).\n\n✅ **Supervised data** (with labels): Get accuracy and evaluation metrics\n\n🔍 **Unsupervised data** (no labels): Get predictions only")
 
     uploaded = st.file_uploader("Choose CSV file", type=["csv"])
     models_sel = st.multiselect(
@@ -274,23 +277,35 @@ elif page == "📁 Test File Upload":
         st.markdown(f"**Preview** ({len(df_raw):,} rows)")
         st.dataframe(df_raw.head(5), use_container_width=True)
 
-        # Auto-detect text and label columns
-        def detect_column(possibilities, columns):
-            for p in possibilities:
-                for c in columns:
-                    if c.lower() == p:
-                        return c
-            return None
-        text_candidates = ["text", "sentence", "content", "review", "tweet", "message"]
-        label_candidates = ["label", "target", "class", "sentiment", "category"]
-        columns = list(df_raw.columns)
-        text_col = detect_column(text_candidates, columns)
-        label_col = detect_column(label_candidates, columns)
-        if not text_col or not label_col:
-            st.error(f"❌ Could not auto-detect text/label columns. Found columns: {columns}")
+        # Auto-detect text and label columns using intelligent detection
+        # For this page, we don't require labels (can be unsupervised)
+        is_valid, msg, detected = validate_dataset(df_raw, require_labels=False)
+        
+        if not is_valid:
+            st.error(msg)
+            st.info("💡 **Tip**: Ensure your CSV has a text column (e.g., 'text', 'review', 'sentence', 'content')")
+            
+            # Show column analysis to help debug
+            with st.expander("🔍 Column Analysis"):
+                for col in df_raw.columns:
+                    col_info = get_column_info(df_raw, col)
+                    st.markdown(f"**{col_info['name']}**: {col_info['dtype']}, {col_info['n_unique']} unique values")
+                    if 'avg_length' in col_info:
+                        st.markdown(f"  - Avg length: {col_info['avg_length']} chars")
+                    st.markdown(f"  - Sample: {col_info['sample_values'][:2]}")
             st.stop()
-
-        df_raw = df_raw.dropna(subset=[text_col, label_col])
+        
+        st.success(msg)
+        text_col = detected['text']
+        label_col = detected['label']
+        is_supervised = detected['is_supervised']
+        
+        # Clean data based on what we detected
+        if is_supervised:
+            df_raw = df_raw.dropna(subset=[text_col, label_col])
+        else:
+            df_raw = df_raw.dropna(subset=[text_col])
+            st.warning("📌 **Unsupervised Mode**: No label column detected. Will show predictions only (no accuracy metrics).")
 
         if st.button("▶️ Run Classification", type="primary"):
             if not check_models_ready():
@@ -301,61 +316,95 @@ elif page == "📁 Test File Upload":
             all_results = {}
             progress = st.progress(0, text="Running models…")
 
+            # Import the new predict_file function that handles both supervised and unsupervised
+            from predict import predict_file
+            
             for i, mname in enumerate(models_sel):
                 with st.spinner(f"Evaluating {MODEL_LABELS[mname]}…"):
                     t0 = time.time()
-                    res = run_evaluation(df_raw.copy(), mname)
+                    res = predict_file(df_raw.copy(), mname)
                     res["elapsed"] = round(time.time() - t0, 2)
                     all_results[mname] = res
                 progress.progress((i + 1) / len(models_sel))
 
             progress.empty()
-            st.success("✅ Evaluation complete!")
+            st.success("✅ Classification complete!")
 
             # ── Summary metrics ──────────────────────────────────────────────
-            st.markdown("### 📊 Results Summary")
-            cols = st.columns(len(models_sel))
-            for col, mname in zip(cols, models_sel):
-                res = all_results[mname]
-                col.metric(
-                    label=MODEL_LABELS[mname],
-                    value=f"{res['accuracy']*100:.1f}%",
-                    delta=f"{res['correct']} correct / {res['incorrect']} wrong",
-                )
+            if is_supervised:
+                st.markdown("### 📊 Results Summary")
+                cols = st.columns(len(models_sel))
+                for col, mname in zip(cols, models_sel):
+                    res = all_results[mname]
+                    col.metric(
+                        label=MODEL_LABELS[mname],
+                        value=f"{res['accuracy']*100:.1f}%",
+                        delta=f"{res['correct']} correct / {res['incorrect']} wrong",
+                    )
 
-            # ── Grouped bar chart ─────────────────────────────────────────────
-            st.pyplot(bar_chart_correct_incorrect(all_results))
-            st.pyplot(accuracy_comparison_bar(all_results))
+                # ── Grouped bar chart ─────────────────────────────────────────────
+                st.pyplot(bar_chart_correct_incorrect(all_results))
+                st.pyplot(accuracy_comparison_bar(all_results))
+            else:
+                st.markdown("### 🔍 Prediction Summary")
+                st.info("Unsupervised data - showing predictions only (no ground truth labels)")
+                cols = st.columns(len(models_sel))
+                for col, mname in zip(cols, models_sel):
+                    res = all_results[mname]
+                    # Show prediction distribution
+                    pred_dist = pd.Series([d['predicted'] for d in res['details']]).value_counts()
+                    col.metric(
+                        label=MODEL_LABELS[mname],
+                        value=f"{res['total']} predictions",
+                        delta=f"Classes: {dict(pred_dist)}",
+                    )
 
             # ── Comparison table ──────────────────────────────────────────────
             st.markdown("### 📋 Comparison Table")
-            cmp = pd.DataFrame({
-                "Model": [MODEL_LABELS[m] for m in models_sel],
-                "Total": [all_results[m]["total"]    for m in models_sel],
-                "Correct": [all_results[m]["correct"]   for m in models_sel],
-                "Incorrect": [all_results[m]["incorrect"] for m in models_sel],
-                "Accuracy (%)": [f"{all_results[m]['accuracy']*100:.2f}" for m in models_sel],
-                "Time (s)": [all_results[m]["elapsed"]   for m in models_sel],
-            })
+            if is_supervised:
+                cmp = pd.DataFrame({
+                    "Model": [MODEL_LABELS[m] for m in models_sel],
+                    "Total": [all_results[m]["total"]    for m in models_sel],
+                    "Correct": [all_results[m]["correct"]   for m in models_sel],
+                    "Incorrect": [all_results[m]["incorrect"] for m in models_sel],
+                    "Accuracy (%)": [f"{all_results[m]['accuracy']*100:.2f}" for m in models_sel],
+                    "Time (s)": [all_results[m]["elapsed"]   for m in models_sel],
+                })
+            else:
+                cmp = pd.DataFrame({
+                    "Model": [MODEL_LABELS[m] for m in models_sel],
+                    "Total Predictions": [all_results[m]["total"] for m in models_sel],
+                    "Time (s)": [all_results[m]["elapsed"] for m in models_sel],
+                })
             st.dataframe(cmp, use_container_width=True, hide_index=True)
 
             # ── Per-row details ───────────────────────────────────────────────
             st.markdown("### 🔎 Per-Prediction Details")
-            best_model = max(models_sel, key=lambda m: all_results[m]["accuracy"])
-            details_df = pd.DataFrame(all_results[best_model]["details"])
-            details_df["result"] = details_df["correct"].map({True: "✅ Correct", False: "❌ Wrong"})
-            st.caption(f"Showing results for best model: **{MODEL_LABELS[best_model]}**")
-
-            filter_opt = st.radio("Filter", ["All", "✅ Correct only", "❌ Wrong only"], horizontal=True)
-            if filter_opt == "✅ Correct only":
-                details_df = details_df[details_df["correct"]]
-            elif filter_opt == "❌ Wrong only":
-                details_df = details_df[~details_df["correct"]]
-
-            st.dataframe(
-                details_df[["id", "text", "true_label", "predicted", "result", "confidence"]],
-                use_container_width=True, hide_index=True,
+            best_model = models_sel[0] if len(models_sel) == 1 else max(
+                models_sel, key=lambda m: all_results[m].get("accuracy", 0)
             )
+            details_df = pd.DataFrame(all_results[best_model]["details"])
+            
+            if is_supervised:
+                details_df["result"] = details_df["correct"].map({True: "✅ Correct", False: "❌ Wrong"})
+                st.caption(f"Showing results for best model: **{MODEL_LABELS[best_model]}**")
+
+                filter_opt = st.radio("Filter", ["All", "✅ Correct only", "❌ Wrong only"], horizontal=True)
+                if filter_opt == "✅ Correct only":
+                    details_df = details_df[details_df["correct"]]
+                elif filter_opt == "❌ Wrong only":
+                    details_df = details_df[~details_df["correct"]]
+
+                st.dataframe(
+                    details_df[["id", "text", "true_label", "predicted", "result", "confidence"]],
+                    use_container_width=True, hide_index=True,
+                )
+            else:
+                st.caption(f"Showing predictions from: **{MODEL_LABELS[best_model]}**")
+                st.dataframe(
+                    details_df[["id", "text", "predicted", "confidence"]],
+                    use_container_width=True, hide_index=True,
+                )
 
             # Download
             csv_out = cmp.to_csv(index=False)

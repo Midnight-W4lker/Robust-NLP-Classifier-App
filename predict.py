@@ -11,6 +11,7 @@ import pandas as pd
 from gensim.models import Word2Vec
 
 from preprocessing import preprocess_batch
+from column_detector import detect_columns
 
 BASE_DIR   = os.path.dirname(__file__)
 MODELS_DIR = os.path.join(BASE_DIR, "models")
@@ -103,28 +104,103 @@ def predict_texts(texts: list, model_name: str) -> dict:
     }
 
 
+def predict_file(df: pd.DataFrame, model_name: str) -> dict:
+    """
+    Run predictions on a DataFrame (supports both supervised and unsupervised data).
+    For unsupervised data (no labels), only returns predictions.
+    For supervised data (with labels), returns predictions + evaluation.
+    """
+    # Auto-detect columns
+    detected = detect_columns(df)
+    
+    text_col = detected['text']
+    if not text_col:
+        raise ValueError(f"Could not auto-detect text column. Found columns: {list(df.columns)}")
+    
+    texts = df[text_col].astype(str).tolist()
+    result = predict_texts(texts, model_name)
+    preds = result["predictions"]
+    probs = result["probabilities"]
+    
+    # Build base response
+    response = {
+        "model": model_name,
+        "total": len(texts),
+        "is_supervised": detected['is_supervised'],
+        "text_column": text_col,
+        "label_column": detected['label'],
+    }
+    
+    # If supervised, add evaluation metrics
+    if detected['is_supervised']:
+        label_col = detected['label']
+        
+        # Map string labels to integers if needed
+        if df[label_col].dtype == object:
+            label_map = {"negative": 0, "neutral": 1, "positive": 1}
+            unique_labels = set(df[label_col].dropna().unique())
+            if unique_labels <= {"negative", "positive"}:
+                label_map = {"negative": 0, "positive": 1}
+            elif unique_labels <= {"negative", "neutral", "positive"}:
+                label_map = {"negative": 0, "neutral": 1, "positive": 2}
+            df[label_col] = df[label_col].map(label_map)
+        labels = df[label_col].astype(int).tolist()
+        
+        correct = sum(1 for p, g in zip(preds, labels) if p == g)
+        incorrect = sum(1 for p, g in zip(preds, labels) if p != g)
+        accuracy = correct / len(labels) if labels else 0
+        
+        response.update({
+            "correct": correct,
+            "incorrect": incorrect,
+            "accuracy": round(accuracy, 4),
+        })
+        
+        # Build per-row detail with labels
+        rows = []
+        for i, (text, label, pred, prob) in enumerate(zip(texts, labels, preds, probs)):
+            rows.append({
+                "id": i + 1,
+                "text": text[:120] + ("…" if len(text) > 120 else ""),
+                "true_label": label,
+                "predicted": pred,
+                "correct": pred == label,
+                "confidence": round(float(prob), 4) if prob is not None else None,
+            })
+    else:
+        # Unsupervised: no labels, just predictions
+        rows = []
+        for i, (text, pred, prob) in enumerate(zip(texts, preds, probs)):
+            rows.append({
+                "id": i + 1,
+                "text": text[:120] + ("…" if len(text) > 120 else ""),
+                "predicted": pred,
+                "confidence": round(float(prob), 4) if prob is not None else None,
+            })
+    
+    response["details"] = rows
+    return response
+
+
 def evaluate_file(df: pd.DataFrame, model_name: str) -> dict:
     """
-    Evaluate predictions on a DataFrame with 'text' and 'label' columns.
+    Evaluate predictions on a DataFrame with auto-detected text and label columns.
     Returns full results including correct/incorrect breakdown.
     """
-    # Auto-detect text and label columns
-    def detect_column(possibilities, columns):
-        for p in possibilities:
-            for c in columns:
-                if c.lower() == p:
-                    return c
-        return None
-
-    text_candidates = ["text", "sentence", "content", "review", "tweet", "message"]
-    label_candidates = ["label", "target", "class", "sentiment", "category"]
-    columns = list(df.columns)
-    text_col = detect_column(text_candidates, columns)
-    label_col = detect_column(label_candidates, columns)
-    if not text_col or not label_col:
-        raise ValueError(f"Could not auto-detect text/label columns. Found columns: {columns}")
-
+    # Auto-detect text and label columns using intelligent detection
+    detected = detect_columns(df)
+    
+    text_col = detected['text']
+    label_col = detected['label']
+    
+    if not text_col:
+        raise ValueError(f"Could not auto-detect text column. Found columns: {list(df.columns)}")
+    
+    if not label_col:
+        raise ValueError(f"Could not auto-detect label column. This appears to be unsupervised data. Found columns: {list(df.columns)}")
+    
     texts  = df[text_col].astype(str).tolist()
+    
     # Map string labels to integers if needed
     if df[label_col].dtype == object:
         label_map = {"negative": 0, "neutral": 1, "positive": 1}
