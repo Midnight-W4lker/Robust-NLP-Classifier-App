@@ -14,11 +14,16 @@ GROUP Members:
 A robust, modular, and extensible Natural Language Processing (NLP) classification pipeline for text datasets. This project supports preprocessing, model training, evaluation, and reporting, with a user-friendly Streamlit web interface.
 
 ## Features
-- **Automatic Text & Label Column Detection:** Handles various dataset formats by auto-detecting text and label columns.
+- **🎯 Intelligent Column Auto-Detection:** 
+  - Automatically detects text columns by name patterns, content length, and text characteristics
+  - Auto-detects label columns by name patterns and cardinality analysis
+  - Supports **both supervised** (with labels) **and unsupervised** (no labels) datasets
+  - Works with diverse column names: 'text', 'review', 'content', 'sentence', 'message', 'tweet', etc.
+  - Handles various label formats: 'label', 'sentiment', 'category', 'target', 'class', etc.
 - **Preprocessing:** Cleans and prepares text data for modeling.
-- **Multiple Models:** Supports Word2Vec, GloVe, and other models for text representation.
+- **Multiple Models:** Supports TF-IDF, Word2Vec (CBOW), and GloVe-style (Skip-gram) representations.
 - **Training & Evaluation:** Train models and evaluate on custom or provided datasets.
-- **Streamlit App:** Interactive web UI for predictions and evaluation.
+- **Streamlit App:** Interactive web UI for predictions and evaluation with real-time results.
 - **Report Generation:** Automated PDF report summarizing results.
 
 ## Project Structure
@@ -56,14 +61,31 @@ A robust, modular, and extensible Natural Language Processing (NLP) classificati
 	```
 
 ## Usage
-- **Custom Datasets:** Place your CSV files in the `data/` folder. The app will auto-detect text and label columns.
+- **Custom Datasets:** Upload any CSV file through the Streamlit app. The intelligent column detector will automatically identify text and label columns (if present).
+  - **Supervised datasets** (with labels): Get full accuracy metrics and evaluation results
+  - **Unsupervised datasets** (text only): Get predictions without evaluation metrics
 - **Model Training:** Use `train_models.py` or `run_all.py` to train models on your data.
 - **Evaluation:** Evaluate models using the Streamlit app or `predict.py`.
 - **Reporting:** Generate a PDF report with `generate_report.py`.
 
 ## Data Format
-- CSV files should contain at least one text column (e.g., `text`, `sentence`, `review`) and one label column (e.g., `label`, `target`, `class`).
-- The pipeline auto-detects these columns.
+The app automatically detects columns using intelligent strategies:
+
+### Column Auto-Detection
+**Text Columns** (detected by):
+- Common names: `text`, `sentence`, `content`, `review`, `tweet`, `message`, `comment`, `description`, `post`, `article`, `question`, `answer`, etc.
+- Average text length > 20 characters
+- String datatype with longest content
+
+**Label Columns** (detected by, *optional for unsupervised data*):
+- Common names: `label`, `sentiment`, `category`, `target`, `class`, `rating`, `emotion`, `type`, etc.
+- Low cardinality (2-50 unique values)
+- Categorical distribution pattern
+
+### Supported Formats
+- **Supervised**: CSV with text + label columns
+- **Unsupervised**: CSV with text column only (predictions without evaluation)
+- **Flexible column names**: No need to rename your columns - the app adapts to your data!
 
 
 
