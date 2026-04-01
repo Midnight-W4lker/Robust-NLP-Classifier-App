@@ -109,6 +109,29 @@ def check_models_ready():
     return ModelLoader.models_ready()
 
 
+def get_available_models():
+    """Get list of available models based on what's installed."""
+    from predict import ModelLoader, GENSIM_AVAILABLE
+    available = []
+    
+    if ModelLoader.is_model_available("tfidf"):
+        available.append("tfidf")
+    
+    if GENSIM_AVAILABLE:
+        if ModelLoader.is_model_available("word2vec"):
+            available.append("word2vec")
+        if ModelLoader.is_model_available("glove"):
+            available.append("glove")
+    
+    return available if available else ["tfidf"]  # Default to tfidf
+
+
+def check_gensim_available():
+    """Check if gensim is available."""
+    from predict import GENSIM_AVAILABLE
+    return GENSIM_AVAILABLE
+
+
 def run_evaluation(df: pd.DataFrame, model_name: str) -> dict:
     from predict import evaluate_file
     return evaluate_file(df, model_name)
@@ -212,6 +235,10 @@ with st.sidebar:
     else:
         st.warning("⚠️ Models not trained yet")
         st.info("Run `python train_models.py` to train the models.")
+    
+    # Check gensim availability
+    if not check_gensim_available():
+        st.warning("⚠️ Word2Vec/GloVe unavailable (gensim missing)")
 
     st.markdown("---")
     page = st.radio(
@@ -220,10 +247,14 @@ with st.sidebar:
         index=0,
     )
     st.markdown("---")
-    st.markdown("**Vectorization Methods:**")
-    st.markdown("- 🔵 TF-IDF")
-    st.markdown("- 🟡 Word2Vec (CBOW)")
-    st.markdown("- 🟢 GloVe-style (Skip-gram)")
+    st.markdown("**Available Models:**")
+    available_models = get_available_models()
+    if "tfidf" in available_models:
+        st.markdown("- 🔵 TF-IDF")
+    if "word2vec" in available_models:
+        st.markdown("- 🟡 Word2Vec (CBOW)")
+    if "glove" in available_models:
+        st.markdown("- 🟢 GloVe-style (Skip-gram)")
     st.markdown("---")
     st.caption("Lab Mid: Robust Text Classification\nNLP Course — 2024/25")
 
@@ -408,10 +439,17 @@ elif page == "📁 Test File Upload":
     st.info("Upload a CSV file. The app will auto-detect text and label columns (if available).\n\n✅ **Supervised data** (with labels): Get accuracy and evaluation metrics\n\n🔍 **Unsupervised data** (no labels): Get predictions only")
 
     uploaded = st.file_uploader("Choose CSV file", type=["csv"])
+    # Get available models
+    available_models = get_available_models()
+    has_gensim = check_gensim_available()
+    
+    if not has_gensim:
+        st.warning("⚠️ **Note**: Word2Vec and GloVe models require gensim library which is not available. Only TF-IDF model is active.")
+    
     models_sel = st.multiselect(
         "Select models to evaluate",
-        options=["tfidf", "word2vec", "glove"],
-        default=["tfidf", "word2vec", "glove"],
+        options=available_models,
+        default=available_models,
         format_func=lambda x: MODEL_LABELS[x],
     )
 
