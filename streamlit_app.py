@@ -195,40 +195,158 @@ with st.sidebar:
 # ─────────────────────────────────────────────────────────────────────────────
 if page == "🏠 Home":
     st.markdown('<p class="main-header">🧠 Robust NLP Text Classifier</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Lab Mid Exam — Cross-Dataset Generalization Study</p>',
+    st.markdown('<p class="sub-header">Intelligent Multi-Model Text Classification with Auto-Detection</p>',
                 unsafe_allow_html=True)
     st.markdown("---")
+    
+    # ── Key Features Overview ──
+    st.markdown("### ✨ Key Features")
+    feat1, feat2, feat3 = st.columns(3)
+    with feat1:
+        st.markdown("""
+        <div class='model-card' style='border-left: 5px solid #667eea;'>
+        <h4>🎯 Smart Detection</h4>
+        <p>Automatically detects text and label columns from any CSV format. 
+        Works with diverse naming conventions and supports both supervised and unsupervised datasets.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with feat2:
+        st.markdown("""
+        <div class='model-card' style='border-left: 5px solid #f59e0b;'>
+        <h4>🚀 Multiple Models</h4>
+        <p>Compare TF-IDF, Word2Vec, and GloVe-style embeddings side-by-side.
+        Get instant accuracy metrics and detailed prediction breakdowns.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with feat3:
+        st.markdown("""
+        <div class='model-card' style='border-left: 5px solid #10b981;'>
+        <h4>📊 Real-time Results</h4>
+        <p>Upload your data and get predictions in seconds.
+        Interactive visualizations show correct vs incorrect predictions with confidence scores.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
+    st.markdown("---")
+    
+    # ── Model Architectures ──
+    st.markdown("### 🤖 Model Architectures")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
         <div class='model-card'>
         <h3>🔵 TF-IDF</h3>
-        <p>Term Frequency–Inverse Document Frequency.<br>
-        Sparse bag-of-words representation with n-gram support (unigrams + bigrams).
-        Fast, interpretable, strong baseline for text classification.</p>
+        <p><strong>Term Frequency–Inverse Document Frequency</strong><br><br>
+        • Sparse bag-of-words representation<br>
+        • N-gram support (unigrams + bigrams)<br>
+        • 50,000 feature vocabulary<br>
+        • Logistic Regression classifier<br>
+        <br><em>Fast, interpretable baseline</em></p>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown("""
         <div class='model-card'>
         <h3>🟡 Word2Vec (CBOW)</h3>
-        <p>Continuous Bag-of-Words neural embeddings trained on the corpus.
-        Documents represented as average of token vectors.
-        Captures semantic similarity between words.</p>
+        <p><strong>Continuous Bag-of-Words</strong><br><br>
+        • Neural word embeddings<br>
+        • Trained on corpus<br>
+        • Average token vectors<br>
+        • Captures semantic similarity<br>
+        <br><em>Context-aware semantics</em></p>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown("""
         <div class='model-card'>
-        <h3>🟢 GloVe-style (Skip-gram)</h3>
-        <p>Skip-gram Word2Vec with larger context window — approximates GloVe behaviour.
-        Better captures rare word semantics and long-range dependencies.</p>
+        <h3>🟢 GloVe-style</h3>
+        <p><strong>Skip-gram with Large Context</strong><br><br>
+        • Skip-gram Word2Vec variant<br>
+        • Larger context window (10)<br>
+        • Better rare word handling<br>
+        • Long-range dependencies<br>
+        <br><em>Enhanced word relationships</em></p>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### 📂 Dataset Sources")
+    
+    # ── Intelligent Column Detection ──
+    st.markdown("### 🎯 Intelligent Column Detection")
+    st.info("**No need to rename your columns!** The app automatically detects text and label columns from your CSV.")
+    
+    det1, det2 = st.columns(2)
+    with det1:
+        st.markdown("""
+        **📝 Text Column Detection:**
+        - Recognizes: `text`, `review`, `content`, `sentence`, `message`, `tweet`, `comment`, `description`, etc.
+        - Analyzes text length (prefers >20 chars avg)
+        - Identifies string columns with longest content
+        """)
+    with det2:
+        st.markdown("""
+        **🏷️ Label Column Detection** *(optional)*:
+        - Recognizes: `label`, `sentiment`, `class`, `category`, `target`, `rating`, etc.
+        - Analyzes cardinality (2-50 unique values)
+        - Supports unsupervised data (no labels)
+        """)
+
+    st.markdown("---")
+    
+    # ── Dataset Support ──
+    st.markdown("### 📂 Supported Datasets")
+    data_col1, data_col2 = st.columns(2)
+    with data_col1:
+        st.markdown("""
+        **✅ Supervised Data** (with labels):
+        - Get full accuracy metrics
+        - Correct vs incorrect breakdown
+        - Confidence scores per prediction
+        - Filter by correct/incorrect results
+        """)
+    with data_col2:
+        st.markdown("""
+        **🔍 Unsupervised Data** (text only):
+        - Get predictions without labels
+        - Confidence scores
+        - Class distribution
+        - Export predictions to CSV
+        """)
+
+    st.markdown("---")
+    st.markdown("### ⚙️ Preprocessing Pipeline")
+    st.caption("Robust text cleaning without external dependencies")
+    steps = [
+        ("1. Lowercasing", "Normalizes case variation"),
+        ("2. URL/mention removal", "Removes @user, http:// noise"),
+        ("3. Hashtag expansion", "#AI → AI"),
+        ("4. HTML tag stripping", "Cleans web-scraped text"),
+        ("5. Non-alpha removal", "Keeps only letters"),
+        ("6. Tokenization", "Whitespace split (no NLTK)"),
+        ("7. Stop-word removal", "500+ English stop words"),
+        ("8. Rule-based lemmatization", "Strips common suffixes"),
+        ("9. Min-length filter", "Removes tokens < 2 chars"),
+    ]
+    cols = st.columns(3)
+    for i, (step, desc) in enumerate(steps):
+        with cols[i % 3]:
+            st.markdown(f"**{step}**  \n_{desc}_")
+    
+    st.markdown("---")
+    
+    # ── Quick Start Guide ──
+    st.markdown("### 🚀 Quick Start")
+    st.markdown("""
+    1. **📁 Upload Dataset**: Go to "Test File Upload" and upload your CSV
+    2. **🎯 Auto-Detection**: App detects text and label columns automatically
+    3. **🤖 Select Models**: Choose which models to compare (or use all three)
+    4. **▶️ Run**: Click "Run Classification" and get instant results
+    5. **📊 Analyze**: View accuracy, predictions, and download results
+    """)
+    
+    st.markdown("---")
+    st.markdown("### 📖 Training Data")
+    st.caption("Models pre-trained on diverse datasets for robust generalization")
     info_df = pd.DataFrame({
         "Dataset": ["Tweets (Sentiment140-style)", "Movie Reviews (IMDb-style)",
                     "Titanic Text", "Trade & News Headlines"],
@@ -238,23 +356,10 @@ if page == "🏠 Home":
         "Use": ["Primary Train + Test 1", "Primary Train + Test 2", "Primary Train", "Test 2"],
     })
     st.dataframe(info_df, use_container_width=True, hide_index=True)
+    
+    st.markdown("---")
+    st.caption("💡 **Tip**: Start with 'Test File Upload' to try the classifier on your own data!")
 
-    st.markdown("### ⚙️ Preprocessing Pipeline")
-    steps = [
-        ("1. Lowercasing", "Normalizes case variation"),
-        ("2. URL / mention removal", "Removes @user, http:// noise"),
-        ("3. Hashtag expansion", "#AI → AI"),
-        ("4. HTML tag stripping", "Cleans web-scraped text"),
-        ("5. Non-alpha removal", "Keeps only letters"),
-        ("6. Tokenization", "Whitespace split (no NLTK needed)"),
-        ("7. Stop-word removal", "500+ English stop words"),
-        ("8. Rule-based lemmatization", "Strips common suffixes"),
-        ("9. Min-length filter", "Removes tokens < 2 chars"),
-    ]
-    cols = st.columns(3)
-    for i, (step, desc) in enumerate(steps):
-        with cols[i % 3]:
-            st.markdown(f"**{step}**  \n_{desc}_")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
