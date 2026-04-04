@@ -103,6 +103,9 @@ You can preview the demo video directly below (works in most Markdown viewers th
 
 If the video does not play in your viewer, [download the demo video](documentation/project%20demo.mkv) and open it locally.
 
+or on youtube
+https://youtu.be/b37mmjKvDcI
+
 ## Extending the Project
 - Add new models in `train_models.py` and update `predict.py` for inference.
 - Add new preprocessing steps in `preprocessing.py`.
