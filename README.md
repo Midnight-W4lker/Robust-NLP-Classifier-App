@@ -101,7 +101,7 @@ You can preview the demo video directly below (works in most Markdown viewers th
   </video>
 </p>
 
-If the video does not play in your viewer, [download the demo video](documentation/project-demo.mkv) and open it locally.
+If the video does not play in your viewer, [download the demo video](documentation/project%20demo.mkv) and open it locally.
 
 ## Extending the Project
 - Add new models in `train_models.py` and update `predict.py` for inference.
